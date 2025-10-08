@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "post-delete"
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  restartPolicy: "Never"
+  containers:
+  - name: main
+    image: "busybox"
