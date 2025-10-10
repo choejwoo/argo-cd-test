@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: my-blocking-app
+spec:
+  destination:
+    namespace: my-blocking-app
+    server: https://kubernetes.default.svc
+  project: my-blocking-app
+  source:
+    path: not-working # replace to use folder working to see it work
+    repoURL: https://github.com/Brawdunoir/argo-cd-test.git
+    targetRevision: HEAD
+  syncPolicy:
+    automated:
+      prune: true
+    managedNamespaceMetadata:
+      annotations:
+        argocd.argoproj.io/tracking-id: my-blocking-app:apps/Namespace:my-blocking-app/my-blocking-app
+    retry:
+      backoff:
+        duration: 1m
+    syncOptions:
+    - CreateNamespace=true
