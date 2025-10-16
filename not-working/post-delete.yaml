@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Pod
 metadata:
   name: "post-delete"
+  namespace : "default"
   annotations:
     argocd.argoproj.io/hook: PostDelete
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
