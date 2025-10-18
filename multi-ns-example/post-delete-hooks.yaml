@@ -1,0 +1,52 @@
+# team-a namespace PostDelete hook
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-a
+  namespace: team-a
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["sh", "-c", "echo Cleaning up team-a; sleep 3"]
+
+---
+# team-b namespace PostDelete hook
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-b
+  namespace: team-b
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["sh", "-c", "echo Cleaning up team-b; sleep 3"]
+
+---
+# team-c namespace PostDelete hook
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-c
+  namespace: team-c
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["sh", "-c", "echo Cleaning up team-c; sleep 3"]
