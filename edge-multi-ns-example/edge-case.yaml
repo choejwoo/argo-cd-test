@@ -1,0 +1,110 @@
+# Complete test scenario for the edge case
+# Tests: Hook in namespace-a should NOT prevent deletion of namespace-b
+# Current logic should NOT detect team-a hook when deleting team-b namespace
+
+---
+# Namespace A (contains hook, but not deletion target)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+
+---
+# Namespace B (deletion target, also contains hook)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b
+
+---
+# Hook in team-a namespace
+# Current logic should NOT detect this when deleting team-b namespace
+# because: obj.GetNamespace() == "team-a" != "team-b"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-a
+  namespace: team-a  # Different namespace from deletion target (team-b)
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          # Note: This hook runs in team-a, but might try to manage team-b
+          # Current logic cannot detect this case
+          command: ["sh", "-c", "echo 'Running in team-a, might manage team-b'; sleep 3"]
+
+---
+# Hook in team-b namespace (deletion target)
+# Current logic SHOULD detect this because: obj.GetNamespace() == "team-b"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-b
+  namespace: team-b  # Same namespace as deletion target
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["sh", "-c", "echo 'Cleaning up team-b'; sleep 3"]
+
+---
+# Hook with empty namespace (inherits application destination = team-b)
+# Current logic SHOULD detect this because: obj.GetNamespace() == ""
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-inherited
+  # namespace is empty - will inherit application destination namespace (team-b)
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: busybox
+          command: ["sh", "-c", "echo 'Cleaning up inherited namespace (team-b)'; sleep 3"]
+
+---
+# Regular resource in team-b (for testing)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config
+  namespace: team-b
+data:
+  key: value
+
+---
+# Example Application manifest (for reference)
+# Note: This would be created separately in Argo CD namespace
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: test-app
+#   namespace: argocd  # or your Argo CD namespace
+# spec:
+#   project: default
+#   source:
+#     repoURL: <your-repo>
+#     path: <path-to-this-directory>
+#     targetRevision: HEAD
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: team-b  # Application manages team-b namespace
+
+

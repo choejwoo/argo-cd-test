@@ -8,7 +8,11 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
+<<<<<<< HEAD
     path: not-working # replace to use folder working to see it work
+=======
+    path: multi-ns-example # replace to use folder working to see it work
+>>>>>>> 51de21e (test)
     repoURL: https://github.com/choejwoo/argo-cd-test.git
     targetRevision: HEAD
   syncPolicy:
