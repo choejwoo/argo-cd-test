@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     path: not-working # replace to use folder working to see it work
-    repoURL: https://github.com/Brawdunoir/argo-cd-test.git
+    repoURL: https://github.com/choejwoo/argo-cd-test.git
     targetRevision: HEAD
   syncPolicy:
     automated:
