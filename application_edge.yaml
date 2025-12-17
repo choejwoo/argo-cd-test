@@ -8,7 +8,7 @@ spec:
     server: https://kubernetes.default.svc
   project: default
   source:
-    path: edge-multi-ns-example # replace to use folder working to see it work
+    path: edge-multi-ns-example-2 # replace to use folder working to see it work
     repoURL: https://github.com/choejwoo/argo-cd-test.git
     targetRevision: HEAD
   syncPolicy:

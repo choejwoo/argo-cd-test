@@ -36,6 +36,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: cleanup
+          nemespace: team-a
           image: bitnami/kubectl:latest  # kubectl available
           command: 
             - sh
@@ -43,11 +44,7 @@ spec:
             # This hook TARGETS team-a namespace (but runs in team-b)
             - |
               echo "Hook in team-b managing team-a namespace"
-              # Try to access/manage team-a namespace
-              kubectl get namespace team-a && echo "team-a namespace exists" || echo "team-a namespace not found"
-              # Simulate some cleanup in team-a
-              kubectl get all -n team-a 2>/dev/null || echo "No resources in team-a"
-              sleep 3
+              sleep 10
 
 ---
 # Regular resource in team-a (to make it more realistic)
