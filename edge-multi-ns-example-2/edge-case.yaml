@@ -1,0 +1,92 @@
+# Real edge case test scenario
+# Tests: team-b's PostDelete hook targets team-a namespace
+# team-a has NO hook, so it will be deleted first
+# team-b has a hook that targets team-a namespace
+
+---
+# Namespace A (NO PostDelete hook - will be deleted first)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-a
+
+---
+# Namespace B (has PostDelete hook that targets team-a)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: team-b
+
+---
+# Hook in team-b namespace that TARGETS team-a namespace
+# This hook runs in team-b but manages team-a namespace
+# Current logic should NOT detect this when checking team-a namespace deletion
+# because: obj.GetNamespace() == "team-b" != "team-a"
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cleanup-team-a-from-team-b
+  namespace: team-b  # Hook is in team-b
+  annotations:
+    argocd.argoproj.io/hook: PostDelete
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: cleanup
+          image: bitnami/kubectl:latest  # kubectl available
+          command: 
+            - sh
+            - -c
+            # This hook TARGETS team-a namespace (but runs in team-b)
+            - |
+              echo "Hook in team-b managing team-a namespace"
+              # Try to access/manage team-a namespace
+              kubectl get namespace team-a && echo "team-a namespace exists" || echo "team-a namespace not found"
+              # Simulate some cleanup in team-a
+              kubectl get all -n team-a 2>/dev/null || echo "No resources in team-a"
+              sleep 3
+
+---
+# Regular resource in team-a (to make it more realistic)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-a
+  namespace: team-a
+data:
+  key: value-a
+
+---
+# Regular resource in team-b (for testing)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config-b
+  namespace: team-b
+data:
+  key: value-b
+
+---
+# Example Application manifest (for reference)
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: test-app
+#   namespace: default
+# spec:
+#   project: default
+#   source:
+#     repoURL: https://github.com/choejwoo/argo-cd-test.git
+#     path: edge-multi-ns-example
+#     targetRevision: HEAD
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: team-b  # Application manages team-b namespace
+#   syncPolicy:
+#     syncOptions:
+#       - CreateNamespace=true
+
+

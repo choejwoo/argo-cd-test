@@ -1,10 +1,10 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: my-blocking-app
+  name: team-b
 spec:
   destination:
-    namespace: my-blocking-app
+    namespace: team-b
     server: https://kubernetes.default.svc
   project: default
   source:
@@ -16,7 +16,7 @@ spec:
       prune: true
     managedNamespaceMetadata:
       annotations:
-        argocd.argoproj.io/tracking-id: my-blocking-app:apps/Namespace:my-blocking-app/my-blocking-app
+        argocd.argoproj.io/tracking-id: team-b:apps/Namespace:team-b/team-b
     retry:
       backoff:
         duration: 1m
